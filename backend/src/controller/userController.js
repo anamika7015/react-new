@@ -1,53 +1,55 @@
-import  userModel  from "../model/userModel.js";
-import user from "../models/userModels.js";
+import userModel from "../models/userModels.js";
+import bcrypt from "bcryptjs"
 
-export const register = async(req,res) =>{
+const register = async (req, res) => {
     try {
-         const {name,email,password} = req.body;
-     if(!name || !email || !password){
-         return res.json({success:false, message:"All fields are required"});
-
-     }
-        const existingUser = await userModel.findOne({email});
-        if(!existingUser){
-            return res.json({success:false, message:"User already exists"});
+        const { name, email, password } = req.body;
+        console.log(name, email, password);
+        if (!name || !email || !password) {
+            return res.json({ success: false, message: "all fields required" })
         }
-        const hashPassword = await bcrypt.hash(password,10);
-        const newUser = new userModel({
+        const existUser = await userModel.findOne({ email });
+        if (existUser) {
+            return res.json({ success: false, message: "user already exist" })
+        }
+        const hashPassword = await bcrypt.hash(password, 10)
+        const newUser = await userModel({
             name,
             email,
             password: hashPassword
-        });
+        })
         const response = await newUser.save();
-        res.json({success:true, message:"User registered successfully"}, response);
+        res.json({ success: true, message: " user successfully registerd ", response })
+
+
     } catch (error) {
-        console.log(error);
-        res.json({success:false, message:"Error in registering user"});
-        
+        res.json({ success: false, message: error.message })
     }
 }
 
-//login controller
 
-export const login = async(req,res) =>{
+//login
+const login = async (req, res) => {
     try {
-         const {email,password} = req.body;
-     if( !email || !password){
-         return res.json({success:false, message:"All fields are required"});
-
-     }
-        const existingUser = await userModel.findOne({email});
-        if(!existingUser){
-            return res.json({success:false, message:"User already exists"});
+        const { email, password } = req.body;
+        console.log(email, password);
+        if (!email || !password) {
+            return res.json({ success: false, message: "all fields required" })
         }
-       const matchpassword = await bcrypt.compare(password, existingUser.password);
-       if(!matchpassword){
-        return res.json({success:false, message:"Invalid credentials"});
-       }
-         res.json({success:true, message:"User logged in successfully", existingUser});
+        const existUser = await userModel.findOne({ email });
+        if (!existUser) {
+            return res.json({ success: false, message: "user not exist" })
+        }
+        const matchPassword = await bcrypt.compare(password, existUser.password)
+        if (!matchPassword) {
+            return res.json({ success: false, message: "invalid credential" })
+        }
+        res.json({ success: true, message: "user login successfully" })
+
+
     } catch (error) {
-        console.log(error);
-        res.json({success:false, message:"Error in registering user"});
-        
+        res.json({ success: false, message: error.message })
     }
 }
+
+export { register, login }
