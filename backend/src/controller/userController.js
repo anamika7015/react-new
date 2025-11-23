@@ -1,25 +1,39 @@
 import userModel from "../models/userModels.js";
 import bcrypt from "bcryptjs"
+import genToken from "../utils/token.js";
 
 const register = async (req, res) => {
     try {
         const { name, email, password } = req.body;
         console.log(name, email, password);
+
         if (!name || !email || !password) {
             return res.json({ success: false, message: "all fields required" })
         }
+
         const existUser = await userModel.findOne({ email });
+
         if (existUser) {
             return res.json({ success: false, message: "user already exist" })
         }
-        const hashPassword = await bcrypt.hash(password, 10)
+
+        const hashPassword = await bcrypt.hash(password, 10);
+
         const newUser = await userModel({
             name,
             email,
             password: hashPassword
         })
-        const response = await newUser.save();
-        res.json({ success: true, message: " user successfully registerd ", response })
+
+        await newUser.save();
+
+        const token = await genToken(newUser._id)
+
+        res.cookie("token", token ,{
+            httpOnly: true
+        })
+        res.json({ success: true, message: " user successfully registerd " })
+
 
 
     } catch (error) {
@@ -44,12 +58,26 @@ const login = async (req, res) => {
         if (!matchPassword) {
             return res.json({ success: false, message: "invalid credential" })
         }
-        res.json({ success: true, message: "user login successfully" })
+        const token = await genToken(matchPassword._id)
+        res.cookie("token", token ,{
+            httpOnly: true
+        })
+        res.json({ success: true, message: "user login successfully", token})
 
+        
 
     } catch (error) {
         res.json({ success: false, message: error.message })
     }
 }
 
-export { register, login }
+const logout  = async (req,res)=>{
+    try {
+        await res.clearCookie("token")
+        return  res.json({success:true , message:"logout succsfully"})
+    } catch (error) {
+        res.json({success:false, message:error.message})
+    }
+}
+
+export { register, login, logout }

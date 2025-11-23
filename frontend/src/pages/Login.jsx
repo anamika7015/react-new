@@ -4,7 +4,7 @@ import { Link, useNavigate } from 'react-router-dom'
 
 const Login = () => {
 
-        const navigate = useNavigate;
+        const navigate = useNavigate();
 
         const[email, setEmail] = useState("");
         const[password, setPassword] = useState("");
@@ -20,6 +20,7 @@ const Login = () => {
                     setEmail("")
                     setPassword("")
 
+                    localStorage.setItem("token", response.data.token);
                     navigate("/home")
                     
                 } catch (error) {

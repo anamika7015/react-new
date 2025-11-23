@@ -2,6 +2,7 @@ import React, { useState } from 'react'
 import { Link, useNavigate } from 'react-router-dom'
 import axios from 'axios';
 
+
 const Signup = () => {
 
 
@@ -25,6 +26,9 @@ const Signup = () => {
             setEmail("");
             setName("");
             setPassword("");
+
+            localStorage.setItem("token", response.data.token);
+
 
             navigate("/home");
 
